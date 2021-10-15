@@ -9,12 +9,12 @@ public class DBConnector extends Thread{
     String user;
     String pw;
 
-    Function function;
+    APIService function;
     Connection conn;
 
     String SQL = "";
 
-    public DBConnector(Function function){
+    public DBConnector(APIService function){
         this.function = function;
 
         this.url = (isDev) ? "jdbc:mysql://192.168.0.3:3306/pocket_recipe" : "jdbc:mysql://127.0.0.1:3306/pocket_recipe";

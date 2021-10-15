@@ -1,6 +1,6 @@
 package com.raondev.pocketrecipe_server.dbconnect;
 
-public enum Function {
+public enum APIService {
     SELECT,
     UPDATE,
     INSERT,
