@@ -17,27 +17,26 @@ public class API {
         return this.instance;
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/searchRecipe")
+    @RequestMapping(method = RequestMethod.GET, path = "searchRecipe")
     JSONArray searchRecipe(@RequestParam String keyword){
-        JSONArray array = new JSONArray();
-        JSONObject json = new JSONObject();
-        json.put("request_type","search");
-        array.add(json);
 
         DBConnector conn = new DBConnector(APIService.SELECT);
+        conn.setKeyword(keyword);
+
         conn.start();
 
-        return array;
+        return conn.resultList;
     }
 
     @RequestMapping(method = RequestMethod.DELETE, path="deleteRecipe")
-    JSONObject deleteRecipe(@RequestParam JSONObject recipe){
+    JSONObject deleteRecipe(@RequestParam JSONObject recipe) throws InterruptedException {
         JSONObject json = new JSONObject();
         json.put("request_type","delete");
 
         DBConnector conn = new DBConnector(APIService.DELETE);
         conn.start();
 
+        Thread.sleep(1000);
 
         return json;
     }
