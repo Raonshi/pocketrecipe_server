@@ -12,10 +12,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+/**
+ * <p>REST API 싱글톤 객체</p>
+ * <p>서버의 각 기능을 url로 맵핑하여 클라이언트가 이용할 수 있도록 한다.</p>
+ */
 @RestController
 public class APIController {
     private static APIController instance = null;
 
+    /**
+     * 싱글톤 생성 메소드
+     * @return 객체가 존재하면 기존 객체를 반환, 존재하지 않으면 새로운 객체 생성
+     */
     public APIController Init(){
         if(instance == null){
             instance = new APIController();
@@ -23,6 +31,13 @@ public class APIController {
         return this.instance;
     }
 
+
+    /**
+     * 레시피조회 API
+     * @param keyword 데이터베이스에서 조회하려는 레시피의 이름
+     * @return 성공하면 조회된 레시피 리스트를 response, 실패하면 실패 json을 response
+     * @throws InterruptedException
+     */
     @RequestMapping(method = RequestMethod.GET, path = "searchRecipe")
     JSONArray searchRecipe(@RequestParam String keyword) throws InterruptedException {
 
@@ -33,27 +48,52 @@ public class APIController {
 
         Thread.sleep(1500);
 
-        return conn.resultList;
+        if(!conn.isComplete){
+            System.out.println("레시피 조회 실패");
+            JSONArray array = new JSONArray();
+            JSONObject obj = new JSONObject();
+            obj.put("message", "Failed");
+            return array;
+        }
+        else{
+            System.out.println("레시피 조회 성공");
+            return conn.resultList;
+        }
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, path="deleteRecipe")
-    JSONObject deleteRecipe(@RequestParam JSONObject recipe) throws InterruptedException {
-        JSONObject json = new JSONObject();
-        json.put("request_type","delete");
 
+    /**
+     * 레시피 삭제 API
+     * @param recipe 데이터베이스에서 삭제하려는 레시피 데이터
+     * @return Success는 성공, Failed는 실패
+     * @throws InterruptedException
+     */
+    @RequestMapping(method = RequestMethod.DELETE, path="deleteRecipe")
+    String deleteRecipe(@RequestBody JSONObject recipe) throws InterruptedException {
         DBConnector conn = new DBConnector(APIService.DELETE);
         conn.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
-        return json;
+        if(!conn.isComplete){
+            System.out.println("레시피 삭제 실패");
+            return "Failed";
+        }
+        else{
+            System.out.println("레시피 삭제 성공");
+            return "Success";
+        }
     }
 
-    @RequestMapping(method = RequestMethod.POST, value="/insertRecipe")
+
+    /**
+     * 레시피 등록 API
+     * @param recipe 데이터베이스에 추가할 레시피 데이터
+     * @return Success는 성공, Failed는 실패
+     * @throws InterruptedException
+     */
+    @RequestMapping(method = RequestMethod.POST, value="insertRecipe")
     String insertRecipe(@RequestBody JSONObject recipe) throws InterruptedException {
-
-        System.out.println("RECIPE : " + recipe.toJSONString());
-
         DBConnector conn = new DBConnector(APIService.INSERT);
         conn.setRecipe(recipe);
         conn.start();
@@ -79,10 +119,13 @@ public class APIController {
             } catch (Exception e) {
                 e.getStackTrace();
             }
+            System.out.println("레시피 등록 실패");
             return "Fail";
         }
+        System.out.println("레시피 등록 성공");
         return "Success";
     }
+
 
     @RequestMapping(method = RequestMethod.PUT, path="updateRecipe")
     JSONObject updateRecipe(@RequestParam JSONObject recipe){
@@ -96,6 +139,11 @@ public class APIController {
     }
 
 
+    /**
+     * 이미지 조회 API
+     * @param filePath 조회하려는 이미지의 경로
+     * @return 이미지의 byte배열을 반환
+     */
     @RequestMapping(method = RequestMethod.GET, path = "image/view", produces = MediaType.IMAGE_JPEG_VALUE)
     public byte[] getImage(@RequestParam String filePath){
         FileInputStream fis = null;
