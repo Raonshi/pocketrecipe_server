@@ -1,26 +1,37 @@
 package com.raondev.pocketrecipe_server;
-
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import ch.qos.logback.core.util.FileUtil;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.json.simple.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.xml.bind.DatatypeConverter;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.io.*;
 
-public class ImageDecoder {
-    JSONObject recipe;
+public class ImageCoder {
+    public JSONObject recipe;
 
-    public ImageDecoder(JSONObject recipe){
-        this.recipe = recipe;
+    public String encode(String path) {
+        String base64Image;
+        File imageFile = new File(path);
+        FileInputStream inputStream;
+        byte[] byteData = new byte[(int)imageFile.length()];
+
+        try{
+            inputStream = new FileInputStream(imageFile);
+            inputStream.read(byteData);
+
+            base64Image = new String(byteData);
+            return base64Image;
+        }
+        catch(IOException e){
+            e.getStackTrace();
+            return "Failed";
+        }
     }
 
+
     public String decode(String data, String target){
-        data = recipe.get("recipe_image").toString();
         byte[] imageBytes = DatatypeConverter.parseBase64Binary(data);
         String path;
 

@@ -1,9 +1,10 @@
 package com.raondev.pocketrecipe_server.dbconnect;
 
-import com.raondev.pocketrecipe_server.ImageDecoder;
+import com.raondev.pocketrecipe_server.ImageCoder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import java.sql.*;
+import java.util.ArrayList;
 
 public class DBConnector extends Thread{
     boolean isDev = true;
@@ -71,11 +72,17 @@ public class DBConnector extends Thread{
 
                     rs = pstmt.executeQuery();
 
+                    ImageCoder encoder = new ImageCoder();
+
                     while(rs.next()){
+                        //이미지 인코딩
+                        //String recipeImage = encoder.encode(rs.getString("recipe_img"));
+
                         JSONObject json = new JSONObject();
 
                         json.put("recipe_name", rs.getString("recipe_nm"));
                         json.put("recipe_image", rs.getString("recipe_img"));
+                        //json.put("recipe_image", recipeImage);
                         json.put("recipe_author", rs.getString("recipe_author"));
                         json.put("recipe_eng", rs.getInt("recipe_eng"));
                         json.put("recipe_nat", rs.getInt("recipe_na"));
@@ -95,12 +102,35 @@ public class DBConnector extends Thread{
                     System.out.println("INSERT!!!");
 
                     //레시피 완성 이미지 저장 및 경로 문자열 지정
-                    ImageDecoder decoder = new ImageDecoder(recipe);
+                    ImageCoder decoder = new ImageCoder();
+                    decoder.recipe = recipe;
                     recipeImagePath = decoder.decode(recipe.get("recipe_image").toString(), recipe.get("recipe_name").toString() + "_complete.jpg");
 
+                    //레시피 매뉴얼리스트, 이미지리스트 선언
+                    ArrayList<String> manualList = (ArrayList<String>) recipe.get("recipe_manual");
+                    ArrayList<String> imageList = new ArrayList<>();
+
+                    //매뉴얼 이미지 저장 경로 구하기
+                    ArrayList<String> tmpImageList = (ArrayList<String>) recipe.get("recipe_manual_image");
+                    System.out.println("tmpImageList length : " + tmpImageList.size());
+                    for(int i = 0; i < 20; i++){
+                        String data = tmpImageList.get(i);
+                        String imagePath = decoder.decode(data, recipe.get("recipe_name").toString() + "_" + i + ".jpg");
+                        imageList.add(imagePath);
+                    }
+
                     //recipe_list테이블에 데이터 삽입
-                    SQL = "INSERT INTO recipe_list(recipe_nm, recipe_img, recipe_eng, recipe_cal, recipe_pro, recipe_fat, recipe_na, recipe_author) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    SQL = "INSERT INTO recipe_list(" +
+                            "recipe_nm, recipe_img, recipe_eng, recipe_cal, recipe_pro, recipe_fat, recipe_na, recipe_author, " +
+                            "image_1, image_2, image_3, image_4, image_5, image_6, image_7, image_8, image_9, image_10, " +
+                            "image_11, image_12, image_13, image_14, image_15, image_16, image_17, image_18, image_19, image_20," +
+                            "manual_1, manual_2, manual_3, manual_4, manual_5, manual_6, manual_7, manual_8, manual_9, manual_10," +
+                            "manual_11, manual_12, manual_13, manual_14, manual_15, manual_16, manual_17, manual_18, manual_19, manual_20) " +
+                            "VALUES (" +
+                            "?, ?, ?, ?, ?, ?, ?, ?, " +
+                            "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+                            "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
                     pstmt = conn.prepareStatement(SQL);
 
                     pstmt.setString(1, recipe.get("recipe_name").toString() == null ? "" : recipe.get("recipe_name").toString());
@@ -111,6 +141,11 @@ public class DBConnector extends Thread{
                     pstmt.setInt(6, recipe.get("recipe_fat").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_fat").toString()));
                     pstmt.setInt(7, recipe.get("recipe_nat").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_nat").toString()));
                     pstmt.setString(8, recipe.get("recipe_author").toString() == null ? "guest" : recipe.get("recipe_author").toString());
+
+                    for(int i = 0; i < 20; i++){
+                        pstmt.setString(i+9, manualList.get(i));
+                        pstmt.setString(i+29, imageList.get(i));
+                    }
 
                     pstmt.executeUpdate();
 

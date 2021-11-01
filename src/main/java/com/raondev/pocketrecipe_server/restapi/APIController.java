@@ -4,32 +4,34 @@ import com.raondev.pocketrecipe_server.dbconnect.APIService;
 import com.raondev.pocketrecipe_server.dbconnect.DBConnector;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @RestController
-public class API {
-    private static API instance = null;
+public class APIController {
+    private static APIController instance = null;
 
-    public API Init(){
+    public APIController Init(){
         if(instance == null){
-            instance = new API();
+            instance = new APIController();
         }
         return this.instance;
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "searchRecipe")
-    JSONArray searchRecipe(@RequestParam String keyword){
+    JSONArray searchRecipe(@RequestParam String keyword) throws InterruptedException {
 
         DBConnector conn = new DBConnector(APIService.SELECT);
         conn.setKeyword(keyword);
 
         conn.start();
+
+        Thread.sleep(1500);
 
         return conn.resultList;
     }
@@ -49,6 +51,9 @@ public class API {
 
     @RequestMapping(method = RequestMethod.POST, value="/insertRecipe")
     String insertRecipe(@RequestBody JSONObject recipe) throws InterruptedException {
+
+        System.out.println("RECIPE : " + recipe.toJSONString());
+
         DBConnector conn = new DBConnector(APIService.INSERT);
         conn.setRecipe(recipe);
         conn.start();
@@ -74,10 +79,8 @@ public class API {
             } catch (Exception e) {
                 e.getStackTrace();
             }
-
             return "Fail";
         }
-
         return "Success";
     }
 
@@ -90,5 +93,36 @@ public class API {
         conn.start();
 
         return json;
+    }
+
+
+    @RequestMapping(method = RequestMethod.GET, path = "image/view", produces = MediaType.IMAGE_JPEG_VALUE)
+    public byte[] getImage(@RequestParam String filePath){
+        FileInputStream fis = null;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String fileDir = filePath; // 파일경로
+
+        try{
+            fis = new FileInputStream(fileDir);
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+        int readCount = 0;
+        byte[] buffer = new byte[1024];
+        byte[] fileArray = null;
+
+        try{
+            while((readCount = fis.read(buffer)) != -1){
+                baos.write(buffer, 0, readCount);
+            }
+            fileArray = baos.toByteArray();
+            fis.close();
+            baos.close();
+        } catch(IOException e){
+            throw new RuntimeException("File Error");
+        }
+        return fileArray;
     }
 }
