@@ -1,8 +1,12 @@
 package com.raondev.pocketrecipe_server.dbconnect;
 
+import com.raondev.pocketrecipe_server.FileController;
 import com.raondev.pocketrecipe_server.ImageCoder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -17,9 +21,17 @@ public class DBConnector extends Thread{
     public void setKeyword(String value){this.keyword = value;}
     public String getKeyword(){return this.keyword;}
 
+    String author;
+    public void setAuthor(String value){this.author = value;}
+    public String getAuthor(){return this.author;}
+
     JSONObject recipe;
     public void setRecipe(JSONObject value){this.recipe = value;}
     public JSONObject getRecipe(){return this.recipe;}
+
+    JSONObject deleteList;
+    public void setDeleteList(JSONObject value){this.deleteList = value;}
+    public JSONObject getDeleteList(){return deleteList;}
 
     public boolean isComplete;
     public String recipeImagePath;
@@ -88,7 +100,7 @@ public class DBConnector extends Thread{
             }
             isComplete = true;
         }
-        catch(SQLException e) {
+        catch(SQLException | InterruptedException e) {
             e.printStackTrace();
             isComplete = false;
         }
@@ -100,11 +112,18 @@ public class DBConnector extends Thread{
      * @throws SQLException
      */
     void selectSql() throws SQLException {
+        String SQL;
         PreparedStatement pstmt;
-        String SQL = "SELECT * FROM recipe_list WHERE recipe_nm LIKE ?";
-
-        pstmt = conn.prepareStatement(SQL);
-        pstmt.setString(1, "%" + keyword + "%");
+        if(!keyword.equals("SHOW_MY_RECIPE")){
+            SQL = "SELECT * FROM recipe_list WHERE recipe_nm LIKE ?";
+            pstmt = conn.prepareStatement(SQL);
+            pstmt.setString(1, "%" + keyword + "%");
+        }
+        else{
+            SQL = "SELECT * FROM recipe_list WHERE recipe_author LIKE ?";
+            pstmt = conn.prepareStatement(SQL);
+            pstmt.setString(1,  author);
+        }
         ResultSet rs = pstmt.executeQuery();
 
         while(rs.next()){
@@ -175,17 +194,6 @@ public class DBConnector extends Thread{
         }
 
         pstmt.executeUpdate();
-
-        //recipe_manual테이블에 UPDATE쿼리를 통해 데이터 삽입
-        //1. 메뉴얼 등록
-        //1-1. 배열로 메뉴얼 정보를 불러온다.
-        //1-2. 배열의 길이만큼 for문을 돌린다.
-        //1-3. for문 안에서 pstmt.setString()을 통해 SQL에 값을 넣어준다.
-        //1-4. 쿼리를 실행한다.
-
-        //2. 메뉴얼 이미지 등록
-        //2-1. 메뉴얼 등록과 동일한 방법을 거치지만 아래의 주의사항에 유념한다.
-        //2-2. 메뉴얼 이미지가 등록되지 않은 메뉴얼은 해당 인덱스의 값이 null이 되어야한다.
     }
 
 
@@ -193,12 +201,37 @@ public class DBConnector extends Thread{
      * DELETE 쿼리 메소드
      * @throws SQLException
      */
-    void deleteSql() throws SQLException {
-        //1. 전달된 레시피데이터를 통해 실제로 DB에 존재하는 데이터인지 확인해야한다.
+    void deleteSql() throws SQLException, InterruptedException {
+        try{
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(deleteList.toJSONString());
+            JSONArray list = (JSONArray) json.get("recipeList");
 
-        String SQL = "";
-        PreparedStatement pstmt = conn.prepareStatement(SQL);
+            int count = (int) deleteList.get("count");
 
+            for(int i = 0; i < count; i++){
+                JSONObject recipe = (JSONObject) list.get(i);
+
+                FileController fcon = new FileController();
+
+                //레시피 이미지폴더 삭제
+                String path = fcon.getPath(recipe.get("recipe_image").toString());
+                fcon.delete(path);
+
+                String SQL = "DELETE FROM recipe_list WHERE recipe_nm = ? AND recipe_author = ?";
+
+                PreparedStatement pstmt = conn.prepareStatement(SQL);
+                pstmt.setString(1, recipe.get("recipe_name").toString());
+                pstmt.setString(2, recipe.get("recipe_author").toString());
+
+                pstmt.executeUpdate();
+
+                Thread.sleep(100);
+            }
+        }
+        catch (ParseException e){
+            e.printStackTrace();
+        }
     }
 
 

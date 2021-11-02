@@ -13,9 +13,5 @@ public class PocketrecipeServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(PocketrecipeServerApplication.class, args);
         APIController api = new APIController().Init();
-
-
-
-
     }
 }
