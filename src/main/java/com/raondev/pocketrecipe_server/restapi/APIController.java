@@ -166,15 +166,20 @@ public class APIController {
      * @return Success는 성공, Failed는 실패
      * @throws InterruptedException
      */
-    @RequestMapping(method = RequestMethod.PUT, path="updateRecipe")
-    JSONObject updateRecipe(@RequestParam JSONObject recipe) throws InterruptedException{
-        JSONObject json = new JSONObject();
-        json.put("request_type","update");
-
+    @RequestMapping(method = RequestMethod.POST, path="updateRecipe")
+    String updateRecipe(@RequestParam JSONObject recipe) throws InterruptedException{
         DBConnector conn = new DBConnector(APIService.UPDATE);
+        conn.setRecipe(recipe);
         conn.start();
 
-        return json;
+        Thread.sleep(1500);
+
+        if(conn.isComplete){
+            return "Success";
+        }
+        else{
+            return "Fail";
+        }
     }
 
 

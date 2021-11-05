@@ -12,6 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PocketrecipeServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(PocketrecipeServerApplication.class, args);
-        APIController api = new APIController().Init();
+        new APIController().Init();
     }
 }
