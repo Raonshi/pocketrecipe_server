@@ -9,6 +9,9 @@ import org.json.simple.parser.ParseException;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class DBConnector extends Thread{
     boolean isDev = true;

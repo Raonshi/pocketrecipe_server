@@ -11,6 +11,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * <p>REST API 싱글톤 객체</p>
@@ -39,16 +43,23 @@ public class APIController {
      * @throws InterruptedException
      */
     @RequestMapping(method = RequestMethod.GET, path = "searchRecipe")
-    JSONArray searchRecipe(@RequestParam String keyword) throws InterruptedException {
-
+    JSONArray searchRecipe(@RequestParam String keyword) throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         DBConnector conn = new DBConnector(APIService.SELECT);
-        conn.setKeyword(keyword);
 
-        conn.start();
+        Future<Boolean> future = executorService.submit(() -> {
+            conn.setKeyword(keyword);
+            conn.start();
 
-        Thread.sleep(1500);
+            return true;
+        });
 
-        if(!conn.isComplete){
+        while(!future.isDone()){
+            Thread.sleep(100);
+        }
+
+        boolean isComplete = future.get();
+        if(!isComplete){
             System.out.println("레시피 조회 실패");
             JSONArray array = new JSONArray();
             JSONObject obj = new JSONObject();
@@ -69,17 +80,24 @@ public class APIController {
      * @throws InterruptedException
      */
     @RequestMapping(method = RequestMethod.GET, path = "searchMyRecipe")
-    JSONArray searchMyRecipe(@RequestParam String keyword, @RequestParam String author) throws InterruptedException {
-
+    JSONArray searchMyRecipe(@RequestParam String keyword, @RequestParam String author) throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         DBConnector conn = new DBConnector(APIService.SELECT);
-        conn.setKeyword(keyword);
-        conn.setAuthor(author);
 
-        conn.start();
+        Future<Boolean> future = executorService.submit(() -> {
+            conn.setKeyword(keyword);
+            conn.setAuthor(author);
+            conn.start();
 
-        Thread.sleep(1500);
+            return true;
+        });
 
-        if(!conn.isComplete){
+        while(!future.isDone()){
+            Thread.sleep(100);
+        }
+
+        boolean isComplete = future.get();
+        if(!isComplete){
             System.out.println("레시피 조회 실패");
             JSONArray array = new JSONArray();
             JSONObject obj = new JSONObject();
@@ -101,14 +119,23 @@ public class APIController {
      * @throws InterruptedException
      */
     @RequestMapping(method = RequestMethod.DELETE, path="deleteRecipe")
-    String deleteRecipe(@RequestBody JSONObject deleteList) throws InterruptedException {
+    String deleteRecipe(@RequestBody JSONObject deleteList) throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         DBConnector conn = new DBConnector(APIService.DELETE);
-        conn.setDeleteList(deleteList);
-        conn.start();
 
-        Thread.sleep(1500);
+        Future<Boolean> future = executorService.submit(() -> {
+            conn.setDeleteList(deleteList);
+            conn.start();
 
-        if(!conn.isComplete){
+            return true;
+        });
+
+        while(!future.isDone()){
+            Thread.sleep(100);
+        }
+
+        boolean isComplete = future.get();
+        if(!isComplete){
             System.out.println("레시피 삭제 실패");
             return "Failed";
         }
@@ -126,14 +153,23 @@ public class APIController {
      * @throws InterruptedException
      */
     @RequestMapping(method = RequestMethod.POST, value="insertRecipe")
-    String insertRecipe(@RequestBody JSONObject recipe) throws InterruptedException {
+    String insertRecipe(@RequestBody JSONObject recipe) throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         DBConnector conn = new DBConnector(APIService.INSERT);
-        conn.setRecipe(recipe);
-        conn.start();
 
-        Thread.sleep(1500);
+        Future<Boolean> future = executorService.submit(() -> {
+            conn.setRecipe(recipe);
+            conn.start();
 
-        if(!conn.isComplete){
+            return true;
+        });
+
+        while(!future.isDone()){
+            Thread.sleep(100);
+        }
+
+        boolean isComplete = future.get();
+        if(!isComplete){
             File folder = new File(conn.recipeImagePath);
             try {
                 while(folder.exists()) {
@@ -167,18 +203,27 @@ public class APIController {
      * @throws InterruptedException
      */
     @RequestMapping(method = RequestMethod.POST, path="updateRecipe")
-    String updateRecipe(@RequestParam JSONObject recipe) throws InterruptedException{
+    String updateRecipe(@RequestParam JSONObject recipe) throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         DBConnector conn = new DBConnector(APIService.UPDATE);
-        conn.setRecipe(recipe);
-        conn.start();
 
-        Thread.sleep(1500);
+        Future<Boolean> future = executorService.submit(() -> {
+            conn.setRecipe(recipe);
+            conn.start();
 
-        if(conn.isComplete){
-            return "Success";
+            return true;
+        });
+
+        while(!future.isDone()){
+            Thread.sleep(100);
+        }
+
+        boolean isComplete = future.get();
+        if(!isComplete){
+            return "Fail";
         }
         else{
-            return "Fail";
+            return "Success";
         }
     }
 
