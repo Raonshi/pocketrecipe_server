@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class DBConnector extends Thread{
-    boolean isDev = true;
+    boolean isDev = false;
 
     String url;
     String user;
