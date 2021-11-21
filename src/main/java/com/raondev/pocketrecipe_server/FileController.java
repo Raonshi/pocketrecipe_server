@@ -1,17 +1,15 @@
 package com.raondev.pocketrecipe_server;
 
+import org.json.simple.JSONObject;
+
 import java.io.File;
 
 public class FileController {
-    public String getPath(String imageLink){
-        String str = imageLink.split("=")[1];
-        System.out.println(str);
-
-        String[] subStr = str.split("/");
-        String path = subStr[0] + "/" + subStr[1] + "/" + subStr[2];
-
+    public String getPath(JSONObject recipe){
+        String author = recipe.get("recipe_author").toString();
+        String recipeName = recipe.get("recipe_name").toString();
+        String path = "image_data/" + author + "/" + recipeName;
         System.out.println(path);
-
         return path;
     }
 

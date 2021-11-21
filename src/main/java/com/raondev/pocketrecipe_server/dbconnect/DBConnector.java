@@ -241,7 +241,7 @@ public class DBConnector extends Thread{
                 FileController fcon = new FileController();
 
                 //레시피 이미지폴더 삭제
-                String path = fcon.getPath(recipe.get("recipe_image").toString());
+                String path = fcon.getPath(recipe);
                 fcon.delete(path);
 
                 String SQL = "DELETE FROM recipe_list WHERE recipe_nm = ? AND recipe_author = ?";

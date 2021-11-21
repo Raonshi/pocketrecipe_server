@@ -11,25 +11,6 @@ import java.io.*;
 public class ImageCoder {
     public JSONObject recipe;
 
-    public String encode(String path) {
-        String base64Image;
-        File imageFile = new File(path);
-        FileInputStream inputStream;
-        byte[] byteData = new byte[(int)imageFile.length()];
-
-        try{
-            inputStream = new FileInputStream(imageFile);
-            inputStream.read(byteData);
-
-            base64Image = new String(byteData);
-            return base64Image;
-        }
-        catch(IOException e){
-            e.getStackTrace();
-            return "Failed";
-        }
-    }
-
 
     public String decode(String data, String target){
         byte[] imageBytes = DatatypeConverter.parseBase64Binary(data);
