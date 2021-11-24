@@ -242,7 +242,7 @@ public class DBConnector extends Thread{
 
                 //레시피 이미지폴더 삭제
                 String path = fcon.getPath(recipe);
-                fcon.delete(path);
+                fcon.delete(path, false);
 
                 String SQL = "DELETE FROM recipe_list WHERE recipe_nm = ? AND recipe_author = ?";
 
@@ -266,17 +266,22 @@ public class DBConnector extends Thread{
      * @throws SQLException
      */
     void updateSql() throws SQLException {
-        String SQL = "";
+        String SQL;
         PreparedStatement pstmt;
-
 
         //1. 레시피 조회
         keyword = "SHOW_MY_RECIPE";
+        author = recipe.get("recipe_author").toString();
         selectSql();
 
         //2. 사용자가 보낸 레시피 데이터와 동일한 레시피를 찾는다.
         String clientRecipeName = recipe.get("recipe_name").toString();
         String clientRecipeAuthor = recipe.get("recipe_author").toString();
+
+        //레시피 이미지폴더 삭제
+        FileController fcon = new FileController();
+        String path = fcon.getPath(recipe);
+        fcon.delete(path, true);
 
 
         for(int i = 0; i < resultList.size(); i++){
@@ -291,13 +296,6 @@ public class DBConnector extends Thread{
                 //레시피 완성 이미지 저장 및 경로 문자열 지정
                 ImageCoder decoder = new ImageCoder();
                 decoder.recipe = recipe;
-                String recipeImage;
-                if(recipe.get("recipe_image").toString().equals("Unknown")){
-                    recipeImage = recipe.get("recipe_image").toString();
-                }
-                else{
-                    recipeImage = decoder.decode(recipe.get("recipe_image").toString(), recipe.get("recipe_name").toString() + "_complete.jpg");
-                }
 
                 //레시피 매뉴얼리스트, 이미지리스트 선언
                 ArrayList<String> manualList = (ArrayList<String>) recipe.get("recipe_manual");
@@ -309,7 +307,6 @@ public class DBConnector extends Thread{
                 for(int j = 0; j < 20; j++){
                     String data = tmpImageList.get(j);
                     String image;
-
                     if(data.equals("Unknown")){
                         image = data;
                     }
@@ -321,29 +318,19 @@ public class DBConnector extends Thread{
 
 
                 SQL = "UPDATE recipe_list SET " +
-                        "recipe_nm = ?, recipe_img = ?, recipe_eng = ?, recipe_cal = ?, recipe_pro = ?, recipe_fat = ?, recipe_na = ?, recipe_author = ?, " +
                         "image_1 = ?, image_2 = ?, image_3 = ?, image_4 = ?, image_5 = ?, image_6 = ?, image_7 = ?, image_8 = ?, image_9 = ?, image_10 = ?, " +
                         "image_11 = ?, image_12 = ?, image_13 = ?, image_14 = ?, image_15 = ?, image_16 = ?, image_17 = ?, image_18 = ?, image_19 = ?, image_20 = ?, " +
                         "manual_1 = ?, manual_2 = ?, manual_3 = ?, manual_4 = ?, manual_5 = ?, manual_6 = ?, manual_7 = ?, manual_8 = ?, manual_9 = ?, manual_10 = ?, " +
                         "manual_11 = ?, manual_12 = ?, manual_13 = ?, manual_14 = ?, manual_15 = ?, manual_16 = ?, manual_17 = ?, manual_18 = ?, manual_19 = ?, manual_20 = ?; ";
                 pstmt = conn.prepareStatement(SQL);
 
-                pstmt.setString(1, recipe.get("recipe_name").toString() == null ? "" : recipe.get("recipe_name").toString());
-                pstmt.setString(2, recipeImage);
-                pstmt.setInt(3, recipe.get("recipe_energy").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_energy").toString()));
-                pstmt.setInt(4, recipe.get("recipe_cal").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_cal").toString()));
-                pstmt.setInt(5, recipe.get("recipe_pro").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_pro").toString()));
-                pstmt.setInt(6, recipe.get("recipe_fat").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_fat").toString()));
-                pstmt.setInt(7, recipe.get("recipe_nat").toString() == null ? 0 : Integer.parseInt(recipe.get("recipe_nat").toString()));
-                pstmt.setString(8, recipe.get("recipe_author").toString() == null ? "guest" : recipe.get("recipe_author").toString());
-
                 for(int j = 0; j < 20; j++){
-                    pstmt.setString(j+9, imageList.get(j));
-                    pstmt.setString(j+29, manualList.get(j));
+                    pstmt.setString(j+1, imageList.get(j));
+                    pstmt.setString(j+21, manualList.get(j));
                 }
-
+                pstmt.executeUpdate();
+                break;
             }
         }
-
     }
 }

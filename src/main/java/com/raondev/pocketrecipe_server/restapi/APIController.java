@@ -195,7 +195,7 @@ public class APIController {
      * @throws InterruptedException
      */
     @RequestMapping(method = RequestMethod.POST, path="updateRecipe")
-    String updateRecipe(@RequestParam JSONObject recipe) throws InterruptedException, ExecutionException {
+    String updateRecipe(@RequestBody JSONObject recipe) throws InterruptedException {
         DBConnector conn = new DBConnector(APIService.UPDATE);
 
         conn.setRecipe(recipe);

@@ -13,7 +13,7 @@ public class FileController {
         return path;
     }
 
-    public void delete(String path){
+    public void delete(String path, boolean isUpdate){
         File folder = new File(path);
 
         if(folder.exists()){
@@ -21,10 +21,15 @@ public class FileController {
 
             for(int i = 0; i < ls.length; i++){
                 if(ls[i].isFile()){
-                    ls[i].delete();
+                    if(!ls[i].getPath().contains("complete")){
+                        ls[i].delete();
+                    }
+                    else{
+                        continue;
+                    }
                 }
                 else{
-                    delete(ls[i].getPath());
+                    delete(ls[i].getPath(), isUpdate);
                 }
                 ls[i].delete();
             }
