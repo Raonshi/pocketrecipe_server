@@ -10,7 +10,7 @@ class OpenApi {
         const uri = this.requesturl + urlencode(keyword);
         console.log(uri);
         const options = {uri: uri,};
-        var json = new Promise((resolve, reject) => {
+        var data = new Promise((resolve, reject) => {
             request(options, (err, response, body) => {
                 if(!err && response.statusCode == 200){
                     console.log("<<==== Search Recipe : Success ==== >>")
@@ -21,8 +21,16 @@ class OpenApi {
                     reject(err)
                 }
             });
+        }).then((value) => JSON.parse(value)).then((json) => {
+            if(json['COOKRCP01']['row'] == null){
+                return ['']
+            }
+            return json['COOKRCP01']['row']
         });
-        return json;
+
+        
+        
+        return data;
     }
 }
 
