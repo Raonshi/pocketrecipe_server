@@ -6,8 +6,8 @@ const app = express();
 
 app.use(express.json());
 
-app.listen(8080, () => {
-    console.log("<<==== Server Start : PORT(8080)====>>")
+app.listen(80, () => {
+    console.log("<<==== Server Start : PORT(80)====>>")
 })
 
 app.get("/search-recipe", async (req, res) => {
@@ -24,8 +24,20 @@ app.get("/search-recipe", async (req, res) => {
 
 
 app.put("/insert-recipe", async (req, res) => {
-    console.log("<<==== Recipe Post ====>")
+    console.log("<<==== Recipe Post ====>>")
     console.log(req.body);
 
     fire.recipeAdd(req.body);
+})
+
+app.delete("/delete-recipe", async (req, res) => {
+    console.log("<<==== Recipe Delete ====>>")
+    console.log(req.body);
+    res.sendStatus(200).send({'Response' : 'OK'});
+})
+
+app.post("/update-recipe", async (req, res) => {
+    console.log("<<==== Recipe Update ====>>");
+    console.log(req.body);
+    res.sendStatus(200).send({'Response' : 'OK'});
 })
