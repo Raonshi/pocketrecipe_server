@@ -6,8 +6,8 @@ const app = express();
 
 app.use(express.json());
 
-app.listen(80, () => {
-    console.log("<<==== Server Start : PORT(80)====>>")
+app.listen(8080, () => {
+    console.log("<<==== Server Start : PORT(8080)====>>")
 })
 
 app.get("/search-recipe", async (req, res) => {
