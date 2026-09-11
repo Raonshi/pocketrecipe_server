@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16.11-alpine
+    env_file: .env.example
+    environment:
+      POSTGRES_DB: pocketrecipe
+      POSTGRES_USER: pocketrecipe
+      POSTGRES_PASSWORD: pocketrecipe
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pocketrecipe -d pocketrecipe"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/schema:/docker-entrypoint-initdb.d:ro
+    networks: [internal]
+
+  api:
+    build: .
+    env_file: .env.example
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pocketrecipe
+      SPRING_DATASOURCE_USERNAME: pocketrecipe
+      SPRING_DATASOURCE_PASSWORD: pocketrecipe
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [internal]
+
+  test:
+    build:
+      context: .
+      target: build
+    env_file: .env.example
+    environment:
+      INTEGRATION_DB_URL: jdbc:postgresql://postgres:5432/pocketrecipe
+      INTEGRATION_DB_USERNAME: pocketrecipe
+      INTEGRATION_DB_PASSWORD: pocketrecipe
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["./gradlew", "test", "--no-daemon"]
+    networks: [internal]
+
+  security:
+    image: zricethezav/gitleaks:v8.24.3
+    working_dir: /repo
+    volumes:
+      - ./:/repo:ro
+    command: ["detect", "--source=/repo", "--log-opts=--all", "--redact"]
+
+networks:
+  internal:
+    internal: true
+
+volumes:
+  postgres-data:

@@ -1,0 +1,10 @@
+.git
+.gradle
+build
+.idea
+.codex
+.env
+.env.*
+!.env.example
+*.key.json
+service-account.json
