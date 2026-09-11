@@ -1,0 +1,30 @@
+spring:
+  config:
+    # Docker Compose injects `.env.example` or `.env`; direct local runs may import them.
+    import: optional:file:.env.example[.properties],optional:file:.env[.properties]
+  application:
+    name: pocketrecipe-server
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:1}
+      connection-timeout: 5000
+      validation-timeout: 3000
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  security:
+    enforcement: ${APP_SECURITY_ENFORCEMENT:true}
+    allowed-origins: ${APP_SECURITY_ALLOWED_ORIGINS:}
+    jwt-issuer-uri: ${APP_SECURITY_JWT_ISSUER_URI:}
+    jwt-jwk-set-uri: ${APP_SECURITY_JWT_JWK_SET_URI:}
+    jwt-audience: ${APP_SECURITY_JWT_AUDIENCE:authenticated}
+  food-safety:
+    base-url: ${FOOD_SAFETY_BASE_URL:https://openapi.foodsafetykorea.go.kr/api}
+    api-key: ${FOOD_SAFETY_API_KEY:}
+    mock-enabled: ${FOOD_SAFETY_MOCK_ENABLED:false}
