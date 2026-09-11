@@ -1,4 +1,5 @@
 HELP.md
+.DS_Store
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -35,4 +36,15 @@ out/
 
 ### VS Code ###
 .vscode/
-node_modules
+node_modules/
+.env
+.env.*
+!.env.example
+service-account.json
+*.key.json
+db/ops/*.local.sql
+
+# Kotlin / Gradle
+.gradle/
+build/
+out/
